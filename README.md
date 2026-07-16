@@ -5,6 +5,7 @@ A polished terminal wizard for creating a reproducible Paper Minecraft server se
 ## What it does
 
 - Guides you through players, RAM, runtime, Minecraft version, game settings, whitelist, authentication, and PvP.
+- Adds server-message and world-seed editing, custom port selection, view and simulation distance controls, hardcore, flight, command-block, max-world-size, and spawn-protection controls.
 - Recommends RAM from the player count, while letting you override it.
 - Creates portable configuration, `server.properties`, EULA acceptance, and either a `compose.yml` or native setup scripts.
 - Docker mode works on Windows, macOS, Linux, and Arch Linux. Native mode creates both PowerShell and POSIX shell scripts.

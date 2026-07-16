@@ -38,7 +38,7 @@ impl Default for App {
 }
 
 impl App {
-    pub const FIELD_COUNT: usize = 12;
+    pub const FIELD_COUNT: usize = 22;
     pub fn handle_key(&mut self, key: KeyEvent) -> Result<()> {
         if !self.editing && matches!(key.code, KeyCode::Char('q') | KeyCode::Esc) {
             self.running = false;
@@ -86,6 +86,12 @@ impl App {
                         text.pop();
                         self.config.directory = PathBuf::from(text);
                     }
+                    2 => {
+                        self.config.motd.pop();
+                    }
+                    3 => {
+                        self.config.seed.pop();
+                    }
                     _ => {}
                 },
                 KeyCode::Char(character) => match self.selected {
@@ -95,6 +101,8 @@ impl App {
                         text.push(character);
                         self.config.directory = PathBuf::from(text);
                     }
+                    2 => self.config.motd.push(character),
+                    3 => self.config.seed.push(character),
                     _ => {}
                 },
                 _ => {}
@@ -110,7 +118,7 @@ impl App {
             }
             KeyCode::Right | KeyCode::Char('l') => self.adjust(1),
             KeyCode::Left | KeyCode::Char('h') => self.adjust(-1),
-            KeyCode::Char('e') if self.selected <= 1 => {
+            KeyCode::Char('e') if self.selected <= 3 => {
                 self.editing = true;
                 self.message = "Editing — type, Backspace to delete, Enter to save.".into();
             }
@@ -127,27 +135,51 @@ impl App {
     }
     fn adjust(&mut self, delta: i8) {
         match self.selected {
-            2 => {
+            4 => {
                 let next = (self.config.max_players as i16 + delta as i16 * 5).clamp(1, 100);
                 self.config.max_players = next as u16;
                 self.config.memory_gb = ServerConfig::recommended_memory(self.config.max_players);
             }
-            3 => self.config.memory_gb = (self.config.memory_gb as i8 + delta).clamp(1, 32) as u8,
-            4 => self.config.runtime = cycle(&Runtime::ALL, self.config.runtime, delta),
-            5 => self.config.gamemode = cycle(&GameMode::ALL, self.config.gamemode, delta),
-            6 => {
+            5 => self.config.memory_gb = (self.config.memory_gb as i8 + delta).clamp(1, 32) as u8,
+            6 => self.config.runtime = cycle(&Runtime::ALL, self.config.runtime, delta),
+            7 => self.config.gamemode = cycle(&GameMode::ALL, self.config.gamemode, delta),
+            8 => {
                 self.config.difficulty = cycle_str(
                     &["peaceful", "easy", "normal", "hard"],
                     &self.config.difficulty,
                     delta,
                 )
             }
-            7 => self.config.online_mode = !self.config.online_mode,
-            8 => self.config.whitelist = !self.config.whitelist,
-            9 => self.config.pvp = !self.config.pvp,
-            10 => {
+            9 => self.config.online_mode = !self.config.online_mode,
+            10 => self.config.whitelist = !self.config.whitelist,
+            11 => self.config.pvp = !self.config.pvp,
+            12 => {
                 self.config.version =
                     cycle_str(&["LATEST", "1.21.8", "1.21.7"], &self.config.version, delta)
+            }
+            13 => {
+                self.config.port =
+                    (self.config.port as i32 + delta as i32).clamp(1024, 65535) as u16
+            }
+            14 => {
+                self.config.view_distance =
+                    (self.config.view_distance as i8 + delta).clamp(2, 32) as u8
+            }
+            15 => {
+                self.config.simulation_distance =
+                    (self.config.simulation_distance as i8 + delta).clamp(2, 32) as u8
+            }
+            16 => self.config.hardcore = !self.config.hardcore,
+            17 => self.config.allow_flight = !self.config.allow_flight,
+            18 => self.config.command_blocks = !self.config.command_blocks,
+            19 => {
+                self.config.max_world_size = (self.config.max_world_size as i64
+                    + delta as i64 * 1_000)
+                    .clamp(1_000, 29_999_984) as u32
+            }
+            20 => {
+                self.config.spawn_protection =
+                    (self.config.spawn_protection as i16 + delta as i16).clamp(0, 64) as u16
             }
             _ => {}
         }
@@ -186,7 +218,7 @@ mod tests {
             page: Page::Configure,
             ..Default::default()
         };
-        app.selected = 2;
+        app.selected = 4;
         app.handle_key(key(KeyCode::Right)).unwrap();
         assert_eq!(app.config.max_players, 15);
         assert_eq!(app.config.memory_gb, 4);
@@ -206,5 +238,21 @@ mod tests {
         app.handle_key(key(KeyCode::Char('2'))).unwrap();
         app.handle_key(key(KeyCode::Enter)).unwrap();
         assert_eq!(app.config.directory, PathBuf::from("minecraft-server2"));
+    }
+    #[test]
+    fn advanced_server_controls_change_with_arrow_keys() {
+        let mut app = App {
+            page: Page::Configure,
+            ..Default::default()
+        };
+        app.selected = 14;
+        app.handle_key(key(KeyCode::Right)).unwrap();
+        assert_eq!(app.config.view_distance, 11);
+        app.selected = 16;
+        app.handle_key(key(KeyCode::Right)).unwrap();
+        assert!(app.config.hardcore);
+        app.selected = 20;
+        app.handle_key(key(KeyCode::Left)).unwrap();
+        assert_eq!(app.config.spawn_protection, 15);
     }
 }
