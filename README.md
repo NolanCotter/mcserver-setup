@@ -19,11 +19,23 @@ Download a release for your platform, then run it in a terminal:
 mcserver-setup
 ```
 
-For a local build, install the stable [Rust toolchain](https://rustup.rs/) and run:
+If you cloned this repository, it contains source code rather than an already-installed
+`mcserver-setup` command. Install the stable [Rust toolchain](https://rustup.rs/), then
+either install the command:
+
+```sh
+sh install.sh
+mcserver-setup
+```
+
+or run it directly from the checkout:
 
 ```sh
 cargo run --release
 ```
+
+If `sh install.sh` reports that `~/.cargo/bin` is not on your `PATH`, run the command it
+prints (or open `~/.cargo/bin/mcserver-setup` directly) before using `mcserver-setup`.
 
 After the wizard completes:
 
@@ -32,6 +44,9 @@ After the wizard completes:
 | Docker | `cd minecraft-server && docker compose up -d` |
 | Windows native | `cd minecraft-server; .\install-server.ps1` |
 | macOS/Linux/Arch native | `cd minecraft-server && sh install-server.sh` |
+
+`install-server.sh` is intentionally not in this repository. The wizard creates it inside
+`minecraft-server` only after you choose **Native Java** and confirm the setup.
 
 Native installation requires Java 21+ and internet access. Docker installation requires Docker Desktop (Windows/macOS) or Docker Engine with the Compose plugin (Linux/Arch).
 
